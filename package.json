@@ -1,0 +1,9 @@
+{
+  "name": "yarn-trpc-express-sample",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "packageManager": "yarn@3.5.0",
+  "license": "MIT"
+}

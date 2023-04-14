@@ -40,3 +40,19 @@ yarn plugin import workspace-tools
 ```bash
 yarn workspaces focus @sample/server
 ```
+
+### 確認
+
+```bash
+# node_modulesインストール前
+$ du -sh
+312K    .
+# サーバー側の依存のみインストール
+$ yarn workspaces focus @sample/server
+$ du -sh
+ 63M    .
+# 全ての依存をインストール
+$ yarn install
+$ du -sh
+110M    .
+```

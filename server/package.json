@@ -2,7 +2,7 @@
   "name": "@sample/server",
   "version": "1.0.0",
   "scripts": {
-    "dev": "tsc-watch"
+    "dev": "tsc-watch --onSuccess 'node dist/index.js'"
   },
   "dependencies": {
     "@trpc/server": "^10.20.0",

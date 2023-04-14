@@ -4,7 +4,7 @@
 
 - `tsc --watch`でtRPCのサーバー側をビルドして、クライアント側では`d.ts`を使う
 - yarn v3を使ってみる
-- `yarn workspaces focus`で、サーバーに必要なパッケージのみをインストールする
+- `yarn workspaces focus`で、サーバー側に必要なパッケージのみをインストールする
 
 tRPCはコード生成がないところがメリットなのかなと思っていたのですが、サーバー側の実装が増えるとtsserverに負担がかかりそうなので、ビルドしてみようと思いました。
 
@@ -23,4 +23,20 @@ yarn run dev
 # client
 cd client
 ts-node --transpileOnly src/index.ts
+```
+
+## サーバー側に必要なパッケージのみをインストールする
+
+`nmHoistingLimits: workspaces`を設定すると、ワークスペースの依存はワークスペース直下の`node_modules`にインストールされます。
+
+`yarn workspaces focus`を有効化します。
+
+```bash
+yarn plugin import workspace-tools
+```
+
+次のコマンドで、サーバーのワークスペースで必要な依存のみをインストールできます。
+
+```bash
+yarn workspaces focus @sample/server
 ```

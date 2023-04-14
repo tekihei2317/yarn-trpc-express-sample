@@ -1,1 +1,13 @@
-{}
+{
+  "name": "@sample/client",
+  "dependencies": {
+    "@sample/api-schema": "workspace:^",
+    "@trpc/client": "^10.20.0",
+    "@trpc/server": "^10.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}

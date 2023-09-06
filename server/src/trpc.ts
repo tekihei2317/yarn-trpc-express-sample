@@ -11,12 +11,14 @@ export const appRouter = t.router({
     return { id: req.input, name: "tekihei2317" };
   }),
   users: t.procedure.query(() => users),
-  createUser: t.procedure.input(z.string()).mutation((req) => {
-    const newUser: User = { id: id++, name: req.input };
-    users.push(newUser);
+  createUser: t.procedure
+    .input(z.object({ name: z.string() }))
+    .mutation((req) => {
+      const newUser: User = { id: id++, name: req.input.name };
+      users.push(newUser);
 
-    return newUser;
-  }),
+      return newUser;
+    }),
 });
 
 export type AppRouter = typeof appRouter;

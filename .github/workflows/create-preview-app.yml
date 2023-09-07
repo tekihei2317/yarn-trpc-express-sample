@@ -1,6 +1,6 @@
-# Pull Requestがクローズされたときに、プレビュー環境を削除する
-# Pull Requestにコミットがpushされたときに、プレビュー環境を更新する
 # Pull Requestが作成されたときに、プレビュー環境を作成する
+# Pull Requestにコミットがpushされたときに、プレビュー環境を更新する
+# Pull Requestがクローズされたときに、プレビュー環境を削除する
 on:
   pull_request:
     types: [opened,synchronize,reopened]
@@ -35,7 +35,7 @@ jobs:
           docker build -t $IMAGE .
           docker push $IMAGE
           echo "image=$IMAGE" > "$GITHUB_OUTPUT"
-      # Pull Requestが作成、または再オープンされたときにサービスを作成する
+      # Pull Requestが作成または再オープンされたときに、サービスを作成する
       - uses: awslabs/amazon-app-runner-deploy@main
         if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
         with:
@@ -51,4 +51,4 @@ jobs:
       # Pull Requestが更新されたときに、サービスを更新する
       - name: Update preview service
         if: ${{ github.event.action == 'synchronize' }}
-        run: echo 'edited'
+        run: aws apprunner start-deployment --service-arn $(./scripts/get-app-runner-service-arn.sh poc-preview-app-${{ steps.pr-number.outputs.value }})

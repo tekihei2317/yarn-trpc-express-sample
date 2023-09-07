@@ -3,6 +3,7 @@
 # Pull Requestが作成されたときに、プレビュー環境を作成する
 on:
   pull_request:
+    types: [opened,synchronize,reopened]
 jobs:
   create-preview-app:
     runs-on: ubuntu-22.04
@@ -22,6 +23,7 @@ jobs:
         run: |
           PR_NUMBER=$(echo $GITHUB_REF | cut -d '/' -f 3)
           echo "value=$PR_NUMBER" > "$GITHUB_OUTPUT"
+      # イメージをビルドしてECRにプッシュする
       - name: Build and push docker image
         id: build
         env:
@@ -33,7 +35,9 @@ jobs:
           docker build -t $IMAGE .
           docker push $IMAGE
           echo "image=$IMAGE" > "$GITHUB_OUTPUT"
+      # Pull Requestが作成、または再オープンされたときにサービスを作成する
       - uses: awslabs/amazon-app-runner-deploy@main
+        if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
         with:
           service: poc-preview-app-${{ steps.pr-number.outputs.value }}
           image: ${{ steps.build.outputs.image }}
@@ -44,3 +48,7 @@ jobs:
           port: 3000
           # サービス作成完了まで待つ時間
           wait-for-service-stability-seconds: 600
+      # Pull Requestが更新されたときに、サービスを更新する
+      - name: Update preview service
+        if: ${{ github.event.action == 'synchronize' }}
+        run: echo 'edited'

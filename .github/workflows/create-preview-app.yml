@@ -1,0 +1,27 @@
+# Pull Requestがクローズされたときに、プレビュー環境を削除する
+# Pull Requestにコミットがpushされたときに、プレビュー環境を更新する
+# Pull Requestが作成されたときに、プレビュー環境を作成する
+on:
+  pull_request:
+jobs:
+  create-preview-app:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/aws-service-role/apprunner.amazonaws.com/AWSServiceRoleForAppRunner
+          aws-region: ap-northeast-1
+      # dockerイメージをビルドする。コミットハッシュでいいのかな。pr-123みたいな感じでいいかな。コミットハッシュをつけた方がいいかは分からない。
+      - env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          PR_NUMBER=$(echo $GITHUB_REF | cut -d '/' -f 3)
+          IMAGE_TAG=pr-${PR_NUMBER}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      # App Runnerのサービスを作成する

@@ -1,0 +1,53 @@
+# Pull Requestが作成されたときに、プレビュー環境を作成する
+# Pull Requestにコミットがpushされたときに、プレビュー環境を更新する
+on:
+  pull_request:
+    types: [opened,synchronize,reopened]
+jobs:
+  create-preview-app:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
+          aws-region: ap-northeast-1
+      - name: Authenticate docker CLI
+        run: aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
+      - name: Set pull request number
+        id: pr-number
+        run: |
+          PR_NUMBER=$(echo $GITHUB_REF | cut -d '/' -f 3)
+          echo "value=$PR_NUMBER" > "$GITHUB_OUTPUT"
+      # イメージをビルドしてECRにプッシュする
+      - name: Build and push docker image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          IMAGE_TAG=pr-${{ steps.pr-number.outputs.value }}
+          IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "image=$IMAGE" > "$GITHUB_OUTPUT"
+      # Pull Requestが作成または再オープンされたときに、サービスを作成する
+      - uses: awslabs/amazon-app-runner-deploy@main
+        if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
+        with:
+          service: poc-preview-app-${{ steps.pr-number.outputs.value }}
+          image: ${{ steps.build.outputs.image }}
+          access-role-arn: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/service-role/AppRunnerECRAccessRole
+          region: ap-northeast-1
+          cpu: 0.25
+          memory: 0.5
+          port: 3000
+          # サービス作成完了まで待つ時間
+          wait-for-service-stability-seconds: 600
+      # Pull Requestが更新されたときに、サービスを更新する
+      - name: Update preview service
+        if: ${{ github.event.action == 'synchronize' }}
+        run: aws apprunner start-deployment --service-arn $(./scripts/get-app-runner-service-arn.sh poc-preview-app-${{ steps.pr-number.outputs.value }})

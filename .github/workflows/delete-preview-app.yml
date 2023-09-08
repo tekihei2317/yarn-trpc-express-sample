@@ -17,5 +17,4 @@ jobs:
       # App Runnerのサービスを削除する
       - name: Delete preview service
         run: |
-          PR_NUMBER=$(echo $GITHUB_REF | cut -d '/' -f 3)
-          aws apprunner delete-service --service-arn $(./scripts/get-app-runner-service-arn.sh poc-preview-app-${PR_NUMBER})
+          aws apprunner delete-service --service-arn $(./scripts/get-app-runner-service-arn.sh poc-preview-app-${{ github.event.number }})

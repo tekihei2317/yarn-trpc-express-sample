@@ -1,6 +1,5 @@
 # Pull Requestが作成されたときに、プレビュー環境を作成する
 # Pull Requestにコミットがpushされたときに、プレビュー環境を更新する
-# Pull Requestがクローズされたときに、プレビュー環境を削除する
 on:
   pull_request:
     types: [opened,synchronize,reopened]

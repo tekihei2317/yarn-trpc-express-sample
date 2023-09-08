@@ -10,8 +10,8 @@ export const appRouter = t.router({
   user: t.procedure.input(z.string()).query((req) => {
     return { id: req.input, name: "tekihei2317" };
   }),
-  // users: t.procedure.query(() => users),
-  users: t.procedure.query(() => [{ id: 1, name: "tekihei2317" }]),
+  users: t.procedure.query(() => users),
+  // users: t.procedure.query(() => [{ id: 1, name: "tekihei2317" }]),
   createUser: t.procedure
     .input(z.object({ name: z.string() }))
     .mutation((req) => {

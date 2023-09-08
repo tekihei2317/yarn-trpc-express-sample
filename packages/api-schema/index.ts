@@ -1,1 +1,1 @@
-export { AppRouter } from "@sample/server/dist/trpc";
+export type { AppRouter } from "@sample/server/dist/trpc";
